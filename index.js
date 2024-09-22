@@ -1,245 +1,253 @@
-class CustomCursor {
-  constructor() {
+class CameraController {
+  constructor(camera) {
     this.bind();
-  }
-  customCursorInit(container) {
-    this.dpi = window.devicePixelRatio;
-    this.cursParameters = {
-      circleSize: 26 * this.dpi,
-      circleWidth: 0.9 * this.dpi,
-      smooshness: 0.001,
-      followingSpeed: 0.16,
-      sliderOpenness: 0,
-      sliderInTime: 0.3,
-      sliderRad: 50 * this.dpi,
-      arrowOppenes: 10 * this.dpi,
-      aInnerCircleSize: 0,
-      linkTime: 0.1,
-      imgArrowScale: 0,
-      playImgScale: 0,
-      playerBgRad: 52 * this.dpi,
-    };
-
-    this.arrowImg = document.querySelector(".arrowsvg");
-    this.playImg = document.querySelector(".playsvg");
-
-    this.cursCont = container;
-    this.cursCanvas = document.createElement("canvas");
-    this.cursCont.appendChild(this.cursCanvas);
-    this.ctx = this.cursCanvas.getContext("2d");
+    this.camera = camera;
     this.cursor = [0, 0];
-    this.lastCursor = [0, 0];
-    this.speed = [0, 0];
-    this.targetPos = [0, 0];
-    this.width = this.ctx.canvas.width = window.innerWidth * this.dpi;
-    this.height = this.ctx.canvas.height = window.innerHeight * this.dpi;
-    RAF.subscribe("canvasUpdate", this.update);
-  }
+    this.ease = 0.05;
+    this.sensitivity = 0.001;
 
-  update() {
-    this.targetPos[0] +=
-      (this.cursor[0] - this.targetPos[0]) * this.cursParameters.followingSpeed;
-    this.targetPos[1] +=
-      (this.cursor[1] - this.targetPos[1]) * this.cursParameters.followingSpeed;
-    this.speed[0] = Math.abs(this.cursor[0] - this.targetPos[0]);
-    this.speed[1] = Math.abs(this.cursor[1] - this.targetPos[1]);
-    this.ctx.clearRect(0, 0, this.width, this.height);
-    this.drawSlider();
-    this.drawCursor();
-    this.drawLink();
-
-    if (this.arrowImg != undefined) this.drawNextProj();
-    if (this.playImg != undefined) this.drawPlayer();
-  }
-  drawCursor() {
-    this.ctx.beginPath();
-    this.ctx.strokeStyle = "#151515";
-    this.ctx.lineWidth = this.cursParameters.circleWidth;
-    this.ctx.translate(this.targetPos[0], this.targetPos[1]);
-    this.ctx.scale(
-      1 - this.speed[1] * this.cursParameters.smooshness,
-      1 - this.speed[0] * this.cursParameters.smooshness
-    );
-    this.ctx.arc(
-      0,
-      0,
-      this.cursParameters.circleSize * (1 - this.cursParameters.sliderOpenness),
-      0,
-      2 * Math.PI
-    );
-    this.ctx.closePath();
-    this.ctx.stroke();
-    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-  }
-  drawSlider() {
-    this.ctx.translate(this.targetPos[0], this.targetPos[1]);
-    this.ctx.beginPath();
-    this.ctx.arc(
-      0,
-      0,
-      this.cursParameters.sliderRad,
-      0,
-      Math.PI * this.cursParameters.sliderOpenness
-    );
-    this.ctx.stroke();
-    this.ctx.closePath();
-
-    this.ctx.beginPath();
-    this.ctx.arc(
-      0,
-      0,
-      this.cursParameters.sliderRad,
-      Math.PI,
-      Math.PI + Math.PI * this.cursParameters.sliderOpenness
-    );
-    this.ctx.stroke();
-    this.ctx.closePath();
-
-    this.ctx.scale(
-      this.cursParameters.sliderOpenness,
-      this.cursParameters.sliderOpenness
-    );
-    let h = 20 * this.dpi;
-    let w = 20 * this.dpi;
-    this.ctx.beginPath();
-    this.ctx.moveTo(this.cursParameters.arrowOppenes / 2, -h / 2);
-    this.ctx.lineTo(this.cursParameters.arrowOppenes / 2 + w / 2, 0);
-    this.ctx.lineTo(this.cursParameters.arrowOppenes / 2, h / 2);
-    this.ctx.closePath();
-    this.ctx.stroke();
-
-    this.ctx.beginPath();
-    this.ctx.moveTo(-this.cursParameters.arrowOppenes / 2, -h / 2);
-    this.ctx.lineTo(-this.cursParameters.arrowOppenes / 2 - w / 2, 0);
-    this.ctx.lineTo(-this.cursParameters.arrowOppenes / 2, h / 2);
-    this.ctx.closePath();
-    this.ctx.stroke();
-
-    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-  }
-  drawLink() {
-    this.ctx.translate(this.targetPos[0], this.targetPos[1]);
-    this.ctx.beginPath();
-    this.ctx.arc(
-      0,
-      0,
-      this.cursParameters.aInnerCircleSize * this.dpi,
-      0,
-      2 * Math.PI
-    );
-    this.ctx.closePath();
-    this.ctx.fill();
-    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-  }
-  drawNextProj() {
-    this.ctx.translate(this.targetPos[0], this.targetPos[1]);
-    let aspect = this.arrowImg.height / this.arrowImg.width;
-    let w = 60 * this.dpi;
-    this.ctx.scale(
-      this.cursParameters.imgArrowScale,
-      this.cursParameters.imgArrowScale
-    );
-    this.ctx.drawImage(this.arrowImg, -w / 2, (-w / 2) * aspect, w, w * aspect);
-    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-  }
-  drawPlayer() {
-    this.ctx.translate(this.targetPos[0], this.targetPos[1]);
-    let aspect = this.playImg.height / this.playImg.width;
-    let w = 50 * this.dpi;
-    this.ctx.scale(
-      this.cursParameters.playImgScale,
-      this.cursParameters.playImgScale
-    );
-    this.ctx.arc(0, 0, this.cursParameters.playerBgRad, 0, Math.PI * 2);
-    this.ctx.fillStyle = "#E5E3DC";
-    this.ctx.fill();
-    this.ctx.drawImage(this.playImg, -w / 2, (-w / 2) * aspect, w, w * aspect);
-    this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-  }
-
-  aIn() {
-    TweenLite.to(this.cursParameters, this.cursParameters.sliderInTime, {
-      circleSize: 0,
-    });
-  }
-  aOut() {
-    TweenLite.to(this.cursParameters, this.cursParameters.sliderInTime, {
-      aInnerCircleSize: 0,
-    });
-    TweenLite.to(this.cursParameters, this.cursParameters.sliderInTime, {
-      circleSize: 26 * this.dpi,
-    });
-  }
-  nextProjIn() {
-    TweenLite.to(this.cursParameters, this.cursParameters.sliderInTime, {
-      imgArrowScale: 1,
-      circleSize: 60 * this.dpi,
-    });
-  }
-  nextProjOut() {
-    TweenLite.to(this.cursParameters, this.cursParameters.sliderInTime, {
-      imgArrowScale: 0,
-      circleSize: 26 * this.dpi,
-    });
-  }
-  vidPlayerIn() {
-    TweenLite.to(this.cursParameters, this.cursParameters.sliderInTime, {
-      playImgScale: 1,
-      circleSize: 0 * this.dpi,
-    });
-  }
-
-  vidPlayerOut() {
-    TweenLite.to(this.cursParameters, this.cursParameters.sliderInTime, {
-      playImgScale: 0,
-      circleSize: 26 * this.dpi,
-    });
+    RAF.subscribe("cameraControllerUpdate", this.update);
   }
 
   mouseMove(e) {
-    this.cursor[0] = e.clientX * this.dpi;
-    this.cursor[1] = e.clientY * this.dpi;
-
-    this.lastCursor[0] = this.cursor[0];
-    this.lastCursor[1] = this.cursor[1];
+    this.cursor[0] = (e.clientX - window.innerWidth / 2) * this.sensitivity;
+    this.cursor[1] = (e.clientY - window.innerHeight / 2) * this.sensitivity;
   }
 
-  resizeCanvas() {
-    this.width = this.ctx.canvas.width = window.innerWidth * this.dpi;
-    this.height = this.ctx.canvas.height = window.innerHeight * this.dpi;
-  }
+  update() {
+    this.camera.position.x +=
+      (this.cursor[0] - this.camera.position.x) * this.ease;
+    this.camera.position.y +=
+      (this.cursor[1] - this.camera.position.y) * this.ease;
 
-  mouseLeft() {
-    TweenLite.to(this.cursParameters, 0.3, {
-      circleSize: 0,
-      playImgScale: 0,
-    });
-  }
-
-  mouseEntered() {
-    TweenLite.to(this.cursParameters, 0.3, {
-      circleSize: 26 * this.dpi,
-    });
+    this.camera.lookAt(0, 0, 0);
   }
 
   bind() {
-    this.customCursorInit = this.customCursorInit.bind(this);
     this.update = this.update.bind(this);
-    this.resizeCanvas = this.resizeCanvas.bind(this);
     this.mouseMove = this.mouseMove.bind(this);
-    this.aIn = this.aIn.bind(this);
-    this.aOut = this.aOut.bind(this);
-    this.nextProjIn = this.nextProjIn.bind(this);
-    this.nextProjOut = this.nextProjOut.bind(this);
-    this.drawNextProj = this.drawNextProj.bind(this);
-    this.vidPlayerIn = this.vidPlayerIn.bind(this);
-    this.vidPlayerOut = this.vidPlayerOut.bind(this);
-    this.mouseLeft = this.mouseLeft.bind(this);
-    this.mouseEntered = this.mouseEntered.bind(this);
-
-    window.addEventListener("resize", this.resizeCanvas);
     window.addEventListener("mousemove", this.mouseMove);
-    document.addEventListener("mouseleave", this.mouseLeft);
-    document.addEventListener("mouseenter", this.mouseEntered);
   }
 }
+const webglHolder = document.querySelector(".webglholder");
+const SLICE_NUMBER = 40;
+var simplex = new SimplexNoise();
+let soundActor = 0.2;
+
+const matCapsUrls = [
+  "https://cdn.jsdelivr.net/gh/niccolomiranda/chiara-luzzana@72fab3c/sphere/matCap0.jpg",
+];
+let matCaps = [];
+let loader = new THREE.TextureLoader();
+matCapsUrls.forEach((url) => {
+  matCaps.push(loader.load(url));
+});
+
+let colorPool = [new THREE.Color(0x822675)];
+const GUIObj = {
+  SLICE_NUMBER: SLICE_NUMBER,
+  sliceThickness: 0.57,
+  noiseSpeed: 4.3,
+  noiseDetail: 30,
+  noiseRoof: 2.3,
+  noiseDepth: 0,
+  noiseShadow: -0.8,
+  noiseOffset: 2,
+  matCap: 0,
+  lightIntensity: 1.34,
+  lightAmbient: 0,
+  camSpeed: 0.05,
+  camSensitivity: 0.002,
+  highFreqIntensity: 0.0017 * 0.01,
+  lowFreqIntensity: 0.008 * 0.1,
+  colorChangingFrequency: 0.01,
+};
+
+class ThreeScene {
+  constructor() {
+    this.bind();
+
+    this.camera;
+    this.scene;
+    this.renderer;
+    this.controls;
+  }
+
+  init() {
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.debug.checkShaderErrors = true;
+    webglHolder.appendChild(this.renderer.domElement);
+
+    if (window.isMobile) this.renderer.setPixelRatio(window.devicePixelRatio);
+
+    this.scene = new THREE.Scene();
+
+    this.camera = new THREE.PerspectiveCamera(
+      30,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    this.camera.position.set(0, 0, 7);
+    // var controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+
+    this.camController = new CameraController(this.camera);
+
+    let light = new THREE.AmbientLight();
+    let pointLight = new THREE.PointLight();
+    pointLight.position.set(10, 10, 0);
+    this.scene.add(light, pointLight);
+
+    this.textureLoader = new THREE.TextureLoader();
+
+    // GENERATED SPHERE
+
+    let sphereRad = 1;
+    let fbxLoader = new THREE.FBXLoader();
+
+    this.sliceGeom = new THREE.Group();
+
+    fbxLoader.load(
+      "https://cdn.jsdelivr.net/gh/niccolomiranda/chiara-luzzana/sphere/slice2.fbx",
+      (obj) => {
+        let inc = 0;
+        for (
+          let i = -sphereRad;
+          i <= sphereRad;
+          i += (sphereRad * 2) / SLICE_NUMBER
+        ) {
+          let n =
+            ((simplex.noise2D(inc * 0.1, 1) + 1) / 2) * (colorPool.length - 1);
+          n = Math.round(n);
+          let uniforms = {
+            u_tex: {
+              value: this.testTex,
+            },
+            u_matCap: {
+              value: matCaps[GUIObj.matCap],
+            },
+            u_nSpeed: {
+              value: 0,
+            },
+            u_offset: {
+              value: inc,
+            },
+            u_sliceNumber: {
+              value: SLICE_NUMBER,
+            },
+            u_offsetInt: {
+              value: GUIObj.noiseOffset,
+            },
+            u_color: {
+              value: colorPool[n],
+            },
+            u_nDet: {
+              value: GUIObj.noiseDetail,
+            },
+            u_nRoof: {
+              value: GUIObj.noiseRoof,
+            },
+            u_nDepth: {
+              value: GUIObj.noiseDepth,
+            },
+            u_nShadow: {
+              value: GUIObj.noiseShadow,
+            },
+            u_lInt: {
+              value: GUIObj.lightIntensity,
+            },
+            u_lTresh: {
+              value: GUIObj.lightAmbient,
+            },
+          };
+
+          let r = Math.sqrt(
+            2 * sphereRad * (i + sphereRad) - Math.pow(i + sphereRad, 2)
+          );
+
+          if (r > 0) {
+            let cyl = obj.children[0].clone();
+            cyl.material = new THREE.ShaderMaterial({
+              vertexShader: vertexShader(),
+              fragmentShader: fragmentShader(),
+              uniforms: uniforms,
+              transparent: true,
+            });
+
+            this.initZScale = cyl.scale.z;
+            cyl.position.y = i;
+            cyl.scale.x *= r;
+            cyl.scale.y *= r;
+            cyl.scale.z = this.initZScale * GUIObj.sliceThickness;
+            this.sliceGeom.add(cyl);
+          }
+          inc++;
+        }
+
+        this.sliceGeom.rotation.z = 1;
+        this.sliceGeom.rotation.y = -0.8;
+        this.scene.add(this.sliceGeom);
+      }
+    );
+    if (window.isMobile) this.sliceGeom.scale.set(0.8, 0.8, 0.8);
+
+    window.addEventListener("resize", this.resizeCanvas);
+    RAF.subscribe("threeSceneUpdate", this.update);
+  }
+
+  update() {
+    this.renderer.render(this.scene, this.camera);
+
+    this.sliceGeom.children.forEach((child, i) => {
+      let n =
+        ((simplex.noise2D(i * GUIObj.colorChangingFrequency, 1) + 1) / 2) *
+        (colorPool.length - 1);
+      n = Math.round(n);
+
+      child.scale.z = this.initZScale * GUIObj.sliceThickness;
+      child.material.uniforms.u_nSpeed.value +=
+        RAF.dt * 0.0001 * GUIObj.noiseSpeed * soundActor;
+      child.material.uniforms.u_nDet.value = GUIObj.noiseDetail;
+      child.material.uniforms.u_nRoof.value = GUIObj.noiseRoof;
+      child.material.uniforms.u_nDepth.value = GUIObj.noiseDepth;
+      child.material.uniforms.u_nShadow.value = GUIObj.noiseShadow;
+      child.material.uniforms.u_matCap.value = matCaps[GUIObj.matCap];
+      child.material.uniforms.u_lInt.value = GUIObj.lightIntensity;
+      child.material.uniforms.u_lTresh.value = GUIObj.lightAmbient;
+      child.material.uniforms.u_offsetInt.value = GUIObj.noiseOffset;
+
+      child.material.uniforms.u_color.value = colorPool[n];
+
+      if (soundReactor.audio == undefined) return;
+      child.material.uniforms.u_nDet.value =
+        GUIObj.noiseDetail + soundReactor.fdata[500] * GUIObj.highFreqIntensity;
+      child.material.uniforms.u_nRoof.value =
+        GUIObj.noiseRoof - soundReactor.fdata[10] * GUIObj.lowFreqIntensity;
+      if (soundReactor.audio > 0 && !myAudio.paused) {
+        soundActor = 1;
+      } else {
+        soundActor = 0.2;
+      }
+    });
+
+    if (this.camController != undefined) {
+      this.camController.sensitivity = GUIObj.camSensitivity;
+      this.camController.ease = GUIObj.camSpeed;
+    }
+  }
+
+  resizeCanvas() {
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
+  }
+
+  bind() {
+    this.resizeCanvas = this.resizeCanvas.bind(this);
+    this.update = this.update.bind(this);
+    this.init = this.init.bind(this);
+  }
+}
+const threeScene = new ThreeScene();
+threeScene.init();
